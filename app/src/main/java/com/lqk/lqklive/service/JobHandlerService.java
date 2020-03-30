@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Process;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.lqk.lqklive.BaseApplication;
@@ -44,6 +45,8 @@ public class JobHandlerService extends JobService {
     public boolean onStartJob(JobParameters params) {
         // true，那么系统假设任务是需要一些时间并且是需要在我们自己应用执行的
         // false，该系统假定任何任务运行不需要很长时间并且到方法返回时已经完成
+        Toast.makeText(this, "jobservice living", Toast.LENGTH_SHORT).show();
+
         return false;
     }
 

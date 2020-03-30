@@ -1,12 +1,17 @@
 package com.lqk.lqklive;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.PowerManager;
 import android.os.Process;
 import android.widget.Toast;
 
+import com.lqk.lqklive.callback.AppBackgroundCallback;
 import com.lqk.lqklive.service.JobHandlerService;
+
+import java.lang.ref.WeakReference;
 
 public class KeepLive {
     public static void init(Context context){
@@ -16,6 +21,9 @@ public class KeepLive {
         }else{
             Toast.makeText(BaseApplication.getInstance(), "keeplive init() else", Toast.LENGTH_SHORT).show();
         }
+
+        // 系统消息监听器 监听 前后台切换 熄屏亮屏
+        BaseApplication.getInstance().registerActivityLifecycleCallbacks(new AppBackgroundCallback());
     }
 
     private static void registerJobService(Context context){
@@ -31,10 +39,6 @@ public class KeepLive {
         }
     }
 
-    private static void registerWorker(Context context){
-
-    }
-
     /**
      * 获取id
      * @return
@@ -47,5 +51,25 @@ public class KeepLive {
             id = Process.myUid();
         }
         return id;
+    }
+
+    private static WeakReference<Activity> weakReference;
+
+    public static void setOnePix(Activity activity){
+        if (weakReference == null){
+            weakReference = new WeakReference(activity);
+        }
+    }
+
+    public static void finishOnePix(){
+        if (weakReference != null){
+            weakReference.get().finish();
+            weakReference = null;
+        }
+    }
+
+    public static boolean isScreenOn(Context context){
+        PowerManager powerManager = (PowerManager) context.getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        return powerManager.isInteractive();
     }
 }
