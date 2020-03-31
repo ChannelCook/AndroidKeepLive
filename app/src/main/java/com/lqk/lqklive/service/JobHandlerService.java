@@ -8,7 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -45,8 +44,8 @@ public class JobHandlerService extends JobService {
     public boolean onStartJob(JobParameters params) {
         // true，那么系统假设任务是需要一些时间并且是需要在我们自己应用执行的
         // false，该系统假定任何任务运行不需要很长时间并且到方法返回时已经完成
-        Toast.makeText(this, "jobservice living", Toast.LENGTH_SHORT).show();
-
+//        Toast.makeText(this, "jobservice living", Toast.LENGTH_SHORT).show();
+        Log.e("jobscheduler", "onStartJob");
         return false;
     }
 
@@ -82,17 +81,23 @@ public class JobHandlerService extends JobService {
         JobInfo.Builder builder = new JobInfo.Builder(jobId, componentName);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-                // setMinimumLatency延时执行
+                //设置满足触发条件后最少延迟一段时间后再触发
+                //设置一段时间之后，即使没有任何触发也执行
+                //设置job失败后的重试时间间隔
                 builder.setMinimumLatency(TIME)
                         .setOverrideDeadline(TIME)
                         .setBackoffCriteria(TIME, JobInfo.BACKOFF_POLICY_LINEAR);
             }else{
-                // setPeriodic每个TIME执行一次
+                // 周期性执行job执行时间间隔
+                //设置作业是否在设备空闲时才会被执行
                 builder.setPeriodic(TIME)
-                        .setRequiresDeviceIdle(true);
+                        .setRequiresDeviceIdle(false);
             }
-            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                    .setRequiresCharging(true)
+            //需要wifi执行
+            //是否需要充电线，只有插入充电线后才开始执行job
+            //设置触发条件是否重启手机后仍有效
+            builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                    .setRequiresCharging(false)
                     .setPersisted(true);
         }catch (Exception e){
             Toast.makeText(this, "当前版本小于21，无法开启jobscheduler", Toast.LENGTH_SHORT).show();
